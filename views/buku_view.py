@@ -2,22 +2,24 @@ import customtkinter as ctk
 from tkinter import ttk
 
 
-class BukuView(ctk.CTk):
-    def __init__(self):
-        super().__init__()
+class BukuView(ctk.CTkToplevel):
+    def __init__(self, master):
+        super().__init__(master)
 
         self.title("Sistem Manajemen Perpustakaan")
         self.geometry("1100x600")
 
-        # Konfigurasi grid utama: form di kiri dan tabel di kanan
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=3)
         self.grid_rowconfigure(0, weight=1)
 
-        # Frame kiri untuk formulir
         self.frame_kiri = ctk.CTkScrollableFrame(self)
         self.frame_kiri.grid(
-            row=0, column=0, padx=10, pady=10, sticky="nsew"
+            row=0,
+            column=0,
+            padx=10,
+            pady=10,
+            sticky="nsew",
         )
 
         ctk.CTkLabel(
@@ -26,7 +28,6 @@ class BukuView(ctk.CTk):
             font=("Arial", 16, "bold"),
         ).pack(pady=15)
 
-        # Input buku
         self.entry_isbn = ctk.CTkEntry(
             self.frame_kiri,
             placeholder_text="ISBN (opsional)",
@@ -63,7 +64,6 @@ class BukuView(ctk.CTk):
         )
         self.entry_stok.pack(pady=8, padx=15, fill="x")
 
-        # Tombol aksi
         self.btn_simpan = ctk.CTkButton(
             self.frame_kiri,
             text="Simpan Data",
@@ -85,10 +85,20 @@ class BukuView(ctk.CTk):
         )
         self.btn_hapus.pack(pady=8, padx=15, fill="x")
 
-        # Frame kanan untuk tabel
+        self.btn_logout = ctk.CTkButton(
+            self.frame_kiri,
+            text="Logout",
+            fg_color="gray",
+        )
+        self.btn_logout.pack(pady=8, padx=15, fill="x")
+
         self.frame_kanan = ctk.CTkFrame(self)
         self.frame_kanan.grid(
-            row=0, column=1, padx=10, pady=10, sticky="nsew"
+            row=0,
+            column=1,
+            padx=10,
+            pady=10,
+            sticky="nsew",
         )
         self.frame_kanan.grid_columnconfigure(0, weight=1)
         self.frame_kanan.grid_rowconfigure(1, weight=1)
@@ -99,8 +109,7 @@ class BukuView(ctk.CTk):
             font=("Arial", 16, "bold"),
         ).grid(row=0, column=0, pady=15)
 
-        # Tabel dengan kolom yang sesuai dengan tabel database books
-        kolom = (
+        columns = (
             "id",
             "isbn",
             "title",
@@ -112,17 +121,22 @@ class BukuView(ctk.CTk):
 
         self.tabel = ttk.Treeview(
             self.frame_kanan,
-            columns=kolom,
+            columns=columns,
             show="headings",
         )
 
-        self.tabel.heading("id", text="ID")
-        self.tabel.heading("isbn", text="ISBN")
-        self.tabel.heading("title", text="Judul")
-        self.tabel.heading("author", text="Penulis")
-        self.tabel.heading("category", text="Kategori")
-        self.tabel.heading("publication_year", text="Tahun Terbit")
-        self.tabel.heading("stock", text="Stok")
+        headers = {
+            "id": "ID",
+            "isbn": "ISBN",
+            "title": "Judul",
+            "author": "Penulis",
+            "category": "Kategori",
+            "publication_year": "Tahun Terbit",
+            "stock": "Stok",
+        }
+
+        for column, heading in headers.items():
+            self.tabel.heading(column, text=heading)
 
         self.tabel.column("id", width=50, anchor="center")
         self.tabel.column("isbn", width=120, anchor="center")
@@ -132,7 +146,6 @@ class BukuView(ctk.CTk):
         self.tabel.column("publication_year", width=100, anchor="center")
         self.tabel.column("stock", width=70, anchor="center")
 
-        # Scrollbar vertikal dan horizontal untuk tabel
         scrollbar_y = ttk.Scrollbar(
             self.frame_kanan,
             orient="vertical",
@@ -152,8 +165,3 @@ class BukuView(ctk.CTk):
         self.tabel.grid(row=1, column=0, sticky="nsew", padx=(15, 0))
         scrollbar_y.grid(row=1, column=1, sticky="ns")
         scrollbar_x.grid(row=2, column=0, sticky="ew", padx=(15, 0))
-
-
-if __name__ == "__main__":
-    app = BukuView()
-    app.mainloop()

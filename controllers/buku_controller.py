@@ -5,12 +5,13 @@ from views.buku_view import BukuView
 
 
 class BukuController:
-    def __init__(self, user_role):
+    def __init__(self, master, user_role, on_logout):
         self.user_role = (user_role or "").strip().lower()
         self.is_admin = self.user_role == "admin"
+        self.on_logout = on_logout
 
         self.model = BukuModel()
-        self.view = BukuView()
+        self.view = BukuView(master)
         self.selected_id = None
 
         self.view.title(
@@ -20,9 +21,10 @@ class BukuController:
         self.view.btn_simpan.configure(command=self.simpan_data)
         self.view.btn_update.configure(command=self.perbarui_data)
         self.view.btn_hapus.configure(command=self.hapus_data)
+        self.view.btn_logout.configure(command=self.logout)
         self.view.tabel.bind("<<TreeviewSelect>>", self.pilih_buku)
+        self.view.protocol("WM_DELETE_WINDOW", self.logout)
 
-        # Non-admin hanya dapat melihat daftar buku.
         if not self.is_admin:
             self.view.btn_simpan.configure(
                 state="disabled",
@@ -51,6 +53,7 @@ class BukuController:
             messagebox.showerror(
                 "Akses Ditolak",
                 "Anda tidak memiliki izin untuk mengubah data buku.",
+                parent=self.view,
             )
             return False
         return True
@@ -85,7 +88,6 @@ class BukuController:
 
         self.selected_id = int(values[0])
 
-        # Anggota dapat memilih baris untuk melihatnya, tetapi form tetap read-only.
         if not self.is_admin:
             return
 
@@ -106,6 +108,7 @@ class BukuController:
             messagebox.showwarning(
                 "Peringatan",
                 "Judul, penulis, dan kategori wajib diisi!",
+                parent=self.view,
             )
             return None
 
@@ -115,6 +118,7 @@ class BukuController:
             messagebox.showwarning(
                 "Peringatan",
                 "Tahun terbit harus berupa angka.",
+                parent=self.view,
             )
             return None
 
@@ -126,6 +130,7 @@ class BukuController:
             messagebox.showwarning(
                 "Peringatan",
                 "Stok harus berupa angka nol atau lebih.",
+                parent=self.view,
             )
             return None
 
@@ -148,13 +153,18 @@ class BukuController:
             return
 
         if self.model.create_buku(*data):
-            messagebox.showinfo("Sukses", "Data buku berhasil disimpan!")
+            messagebox.showinfo(
+                "Sukses",
+                "Data buku berhasil disimpan!",
+                parent=self.view,
+            )
             self._bersihkan_form()
             self.muat_data_tabel()
         else:
             messagebox.showerror(
                 "Error",
                 "Terjadi kesalahan saat menyimpan data.",
+                parent=self.view,
             )
 
     def perbarui_data(self):
@@ -165,6 +175,7 @@ class BukuController:
             messagebox.showwarning(
                 "Peringatan",
                 "Pilih data buku pada tabel yang ingin diperbarui.",
+                parent=self.view,
             )
             return
 
@@ -173,13 +184,18 @@ class BukuController:
             return
 
         if self.model.update_buku(self.selected_id, *data):
-            messagebox.showinfo("Sukses", "Data buku berhasil diperbarui!")
+            messagebox.showinfo(
+                "Sukses",
+                "Data buku berhasil diperbarui!",
+                parent=self.view,
+            )
             self._bersihkan_form()
             self.muat_data_tabel()
         else:
             messagebox.showerror(
                 "Error",
                 "Data buku tidak berubah atau gagal diperbarui.",
+                parent=self.view,
             )
 
     def hapus_data(self):
@@ -190,22 +206,33 @@ class BukuController:
             messagebox.showwarning(
                 "Peringatan",
                 "Pilih data buku pada tabel yang ingin dihapus.",
+                parent=self.view,
             )
             return
 
         konfirmasi = messagebox.askyesno(
             "Konfirmasi",
             "Apakah Anda yakin ingin menghapus data buku ini?",
+            parent=self.view,
         )
         if not konfirmasi:
             return
 
         if self.model.delete_buku(self.selected_id):
-            messagebox.showinfo("Sukses", "Data buku berhasil dihapus!")
+            messagebox.showinfo(
+                "Sukses",
+                "Data buku berhasil dihapus!",
+                parent=self.view,
+            )
             self._bersihkan_form()
             self.muat_data_tabel()
         else:
-            messagebox.showerror("Error", "Data buku gagal dihapus.")
+            messagebox.showerror(
+                "Error",
+                "Data buku gagal dihapus.",
+                parent=self.view,
+            )
 
-    def run(self):
-        self.view.mainloop()
+    def logout(self):
+        self.view.destroy()
+        self.on_logout()
